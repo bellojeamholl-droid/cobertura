@@ -1,0 +1,28 @@
+name: Gerar APK
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descompactar projeto
+        run: unzip -o ZanardiCobertura3D.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compilar
+        working-directory: ZanardiCobertura3D
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: Publicar APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp ZanardiCobertura3D/app/build/outputs/apk/debug/app-debug.apk Cobertura3D.apk
+          gh release create "v${{ github.run_number }}" Cobertura3D.apk --title "Cobertura 3D v${{ github.run_number }}" --notes "APK gerado automaticamente"
